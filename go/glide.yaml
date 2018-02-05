@@ -1,0 +1,10 @@
+package: .
+import:
+- package: github.com/soniakeys/meeus
+  version: ~1.0.0
+  subpackages:
+  - julian
+  - planetposition
+  - solstice
+- package: github.com/soniakeys/sexagesimal
+- package: github.com/ctdk/vsop87

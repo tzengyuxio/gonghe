@@ -1,0 +1,23 @@
+hash: 7edea8d8e7a767ff371ef35f67ebc529f4c1006a02e87e0837d9e7213cabd789
+updated: 2018-02-05T09:46:55.130727+08:00
+imports:
+- name: github.com/ctdk/vsop87
+  version: faa11898fc4c683e068fc056a9a68c71534e0d42
+- name: github.com/soniakeys/meeus
+  version: 88f3dacec0d0da7235c1f79ee15b2e30d1170e33
+  subpackages:
+  - base
+  - coord
+  - elementequinox
+  - globe
+  - julian
+  - nutation
+  - planetposition
+  - precess
+  - solar
+  - solstice
+- name: github.com/soniakeys/sexagesimal
+  version: f0ae4ddc0a5d62b465dbc028c256f0a661c4a99f
+- name: github.com/soniakeys/unit
+  version: cfd2f7f0816c7639260720303c98814e9ce9df93
+testImports: []
