@@ -6,7 +6,10 @@ import (
 
 	"github.com/soniakeys/meeus/julian"
 	pp "github.com/soniakeys/meeus/planetposition"
+	"github.com/soniakeys/meeus/solar"
 	"github.com/soniakeys/meeus/solstice"
+	"github.com/soniakeys/sexagesimal"
+	"github.com/soniakeys/unit"
 )
 
 var gan = []string{"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"}
@@ -30,18 +33,46 @@ func depart(n float64) (int, float64) {
 	return int(i), f
 }
 
+func pingqiToDingqi(e *pp.V87Planet, jd, degree float64) float64 {
+	year, _, _ := julian.JDToCalendar(jd)
+	angle := unit.AngleFromDeg(degree)
+
+	return calcSolarTerms(e, year-1, angle)
+}
+
+func calcSolarTerms(e *pp.V87Planet, year int, angle unit.Angle) float64 {
+	var jd0, jd1 float64
+	var stDegree, stDegreep unit.Angle
+
+	jd1 = solstice.March2(year, e) + 365*float64(angle)/360.0
+	for ok := true; ok; ok = (math.Abs(jd1-jd0) > 0.0000001) {
+		jd0 = jd1
+		stDegree, _, _ = solar.ApparentVSOP87(e, jd0)
+		stDegree -= angle
+		stDegreep1, _, _ := solar.ApparentVSOP87(e, jd0+0.000005)
+		stDegreep2, _, _ := solar.ApparentVSOP87(e, jd0-0.000005)
+		stDegreep = (stDegreep1 - stDegreep2) / 0.00001
+		jd1 = jd0 - float64(stDegree/stDegreep)
+	}
+
+	return jd1
+}
+
 func ganzhiOfDay(jd float64) string {
 	d := int(math.Floor(jd+.5)) - 11
 	return ganzhi(d)
 }
 
 func ganzhiOfYear(year int) string {
+	if year <= 0 {
+		year++
+	}
 	y := (year - 4)
 	return ganzhi(y)
 }
 
 func lichunOfYear(year int) {
-	e, err := pp.LoadPlanetPath(pp.Earth, "/Users/tzengyuxio/SDK/VI_81")
+	e, err := pp.LoadPlanetPath(pp.Earth, "./vendor/github.com/ctdk/vsop87")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -53,9 +84,12 @@ func lichunOfYear(year int) {
 	eq := solstice.March2(y, e)
 	sol := solstice.December2(y-1, e)
 	lichun := (eq + sol) / 2
+	lichun = pingqiToDingqi(e, lichun, 315.0)
 	y, m, dt := julian.JDToCalendar(lichun)
-	d, _ := depart(dt)
-	fmt.Printf("%d-%d-%d\n", year, m, d)
+	d, t := depart(dt)
+	dayGZ := ganzhiOfDay(lichun)
+	yearGZ := ganzhiOfYear(year)
+	fmt.Printf("%f,%04d-%02d-%02d%02s,%s年,%s日\n", lichun, year, m, d, sexa.FmtTime(unit.TimeFromDay(t)), yearGZ, dayGZ)
 }
 
 func testOfZeroYear() {
